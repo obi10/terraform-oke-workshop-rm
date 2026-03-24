@@ -228,7 +228,10 @@ variable "worker_image_id" {
 variable "freeform_tags" {
   description = "Freeform tags"
   type        = map(string)
-  default     = {}
+  default = {
+    project = "oke"
+    env     = "workshop"
+  }
 }
 
 variable "defined_tags" {
