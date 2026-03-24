@@ -1,6 +1,6 @@
 # OKE Terraform - Documentacion de Arquitectura
 
-Este entorno (`terraform-oke-workshop`) despliega un cluster OKE con CNI nativo (`OCI_VCN_IP_NATIVE`) y todos los componentes de red necesarios en un solo compartimiento.
+Este entorno (`terraform-oke-workshop-rm`) despliega un cluster OKE con CNI nativo (`OCI_VCN_IP_NATIVE`) y todos los componentes de red necesarios en un solo compartimiento.
 
 ## 0. Uso rapido del repositorio
 
@@ -10,7 +10,7 @@ Este repositorio esta pensado para ser publico y reutilizable por multiples asis
 
 ### Crear el stack en RM
 
-Sube la carpeta del proyecto a RM. El archivo [schema.yaml](/Users/junicode/Documents/oracle/Hub/FY26/Otros/workshops_CN_ARG_marzo2026/OKE_terraform/terraform-oke-workshop-rm/schema.yaml) organiza la UI del stack y oculta las variables autocompletadas por RM.
+Sube la carpeta del proyecto a RM. El archivo `schema.yaml` organiza la UI del stack y oculta las variables autocompletadas por RM.
 
 ### Variables que debes ingresar manualmente
 
