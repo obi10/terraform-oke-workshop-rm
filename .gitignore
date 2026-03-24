@@ -1,0 +1,41 @@
+.DS_Store
+
+# Terraform working directory and state
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local variable files and plans
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfplan
+*.plan
+
+# CLI and local helper files
+.terraformrc
+terraform.rc
+
+# Sensitive keys, certificates and kube configs
+*.pem
+*.key
+*.pub
+*.crt
+*.cer
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.kubeconfig
+kubeconfig
+
+# Editor / OS artifacts
+.idea/
+.vscode/

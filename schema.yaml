@@ -1,0 +1,200 @@
+title: "OKE Workshop for Resource Manager"
+description: "Despliega un cluster OKE con bastion y red dedicada. Resource Manager autocompleta tenancy_ocid, compartment_ocid y region."
+stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion."
+schemaVersion: "1.1.0"
+version: "1.0.0"
+locale: "en"
+variableGroups:
+  - title: "Resource Manager Context"
+    visible: false
+    variables:
+      - ${tenancy_ocid}
+      - ${compartment_ocid}
+      - ${region}
+  - title: "Bastion Authentication"
+    variables:
+      - ${home_region}
+      - ${user_ocid}
+      - ${fingerprint}
+      - ${private_key_pem}
+      - ${bastion_ssh_public_key}
+  - title: "Cluster Settings"
+    variables:
+      - ${compartment_name}
+      - ${compartment_description}
+      - ${cluster_name}
+      - ${cluster_type}
+      - ${kubernetes_version}
+      - ${node_pool_name}
+      - ${worker_node_count}
+      - ${apps_node_pool_name}
+      - ${apps_worker_node_count}
+  - title: "Network Settings"
+    variables:
+      - ${vcn_cidr}
+      - ${vcn_additional_cidr_blocks}
+      - ${api_endpoint_subnet_cidr}
+      - ${workers_subnet_cidr}
+      - ${pods_subnet_cidr}
+      - ${pods_apps_subnet_cidr}
+      - ${load_balancer_subnet_cidr}
+      - ${bastion_subnet_cidr}
+      - ${services_cidr}
+  - title: "Compute Settings"
+    variables:
+      - ${bastion_shape}
+      - ${bastion_ocpus}
+      - ${bastion_memory_gbs}
+      - ${bastion_boot_volume_size_gbs}
+      - ${bastion_image_os}
+      - ${bastion_image_os_version}
+      - ${bastion_image_id}
+      - ${worker_node_shape}
+      - ${worker_node_ocpus}
+      - ${worker_node_memory_gbs}
+      - ${worker_image_os}
+      - ${worker_image_os_version}
+      - ${worker_image_id}
+variables:
+  tenancy_ocid:
+    type: string
+    visible: false
+  compartment_ocid:
+    type: string
+    visible: false
+  region:
+    type: string
+    visible: false
+  home_region:
+    type: string
+    required: true
+    title: "Home Region"
+    description: "Home region del tenancy. Se usa para crear el compartment del workshop."
+  user_ocid:
+    type: string
+    required: true
+    title: "User OCID for Bastion"
+    description: "OCID del usuario cuya API key se configurara dentro de la bastion."
+  fingerprint:
+    type: string
+    required: true
+    title: "API Key Fingerprint"
+    description: "Fingerprint de la API key asociada al usuario usado en la bastion."
+  private_key_pem:
+    type: string
+    required: true
+    title: "Private Key PEM"
+    description: "Contenido PEM completo de la private key que la bastion usara para OCI CLI."
+  bastion_ssh_public_key:
+    type: oci:core:ssh:publickey
+    required: true
+    title: "Bastion SSH Public Key"
+    description: "Llave publica SSH para acceso administrativo a la VM bastion."
+  compartment_name:
+    type: string
+    title: "Workshop Compartment Name"
+    description: "Nombre del compartment hijo que se creara debajo del compartment seleccionado."
+  compartment_description:
+    type: string
+    title: "Workshop Compartment Description"
+  cluster_name:
+    type: string
+    title: "Cluster Name"
+  cluster_type:
+    type: string
+    title: "Cluster Type"
+    enum:
+      - "ENHANCED_CLUSTER"
+      - "BASIC_CLUSTER"
+  kubernetes_version:
+    type: string
+    title: "Kubernetes Version"
+  node_pool_name:
+    type: string
+    title: "Primary Node Pool Name"
+  worker_node_count:
+    type: number
+    title: "Primary Node Count"
+    minimum: 1
+  apps_node_pool_name:
+    type: string
+    title: "Apps Node Pool Name"
+  apps_worker_node_count:
+    type: number
+    title: "Apps Node Count"
+    minimum: 1
+  vcn_cidr:
+    type: string
+    title: "VCN CIDR"
+  vcn_additional_cidr_blocks:
+    type: array
+    title: "Additional VCN CIDRs"
+    items:
+      type: string
+  api_endpoint_subnet_cidr:
+    type: string
+    title: "API Endpoint Subnet CIDR"
+  workers_subnet_cidr:
+    type: string
+    title: "Workers Subnet CIDR"
+  pods_subnet_cidr:
+    type: string
+    title: "Pods Subnet CIDR"
+  pods_apps_subnet_cidr:
+    type: string
+    title: "Apps Pods Subnet CIDR"
+  load_balancer_subnet_cidr:
+    type: string
+    title: "Load Balancer Subnet CIDR"
+  bastion_subnet_cidr:
+    type: string
+    title: "Bastion Subnet CIDR"
+  services_cidr:
+    type: string
+    title: "Kubernetes Services CIDR"
+  bastion_shape:
+    type: string
+    title: "Bastion Shape"
+  bastion_ocpus:
+    type: number
+    title: "Bastion OCPUs"
+    minimum: 1
+  bastion_memory_gbs:
+    type: number
+    title: "Bastion Memory (GB)"
+    minimum: 1
+  bastion_boot_volume_size_gbs:
+    type: number
+    title: "Bastion Boot Volume Size (GB)"
+    minimum: 50
+  bastion_image_os:
+    type: string
+    title: "Bastion Image OS"
+  bastion_image_os_version:
+    type: string
+    title: "Bastion Image OS Version"
+  bastion_image_id:
+    type: string
+    title: "Bastion Custom Image OCID"
+    required: false
+  worker_node_shape:
+    type: string
+    title: "Worker Shape"
+  worker_node_ocpus:
+    type: number
+    title: "Worker OCPUs"
+    minimum: 1
+  worker_node_memory_gbs:
+    type: number
+    title: "Worker Memory (GB)"
+    minimum: 1
+  worker_image_os:
+    type: string
+    title: "Worker Image OS"
+  worker_image_os_version:
+    type: string
+    title: "Worker Image OS Version"
+  worker_image_id:
+    type: string
+    title: "Worker Custom Image OCID"
+    required: false
