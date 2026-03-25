@@ -48,12 +48,15 @@ variableGroups:
       - ${bastion_boot_volume_size_gbs}
       - ${bastion_image_os}
       - ${bastion_image_os_version}
-      - ${bastion_image_id}
       - ${worker_node_shape}
       - ${worker_node_ocpus}
       - ${worker_node_memory_gbs}
       - ${worker_image_os}
       - ${worker_image_os_version}
+  - title: "Advanced Image Overrides"
+    visible: false
+    variables:
+      - ${bastion_image_id}
       - ${worker_image_id}
 variables:
   tenancy_ocid:
@@ -177,6 +180,7 @@ variables:
     type: string
     title: "Bastion Custom Image OCID"
     required: false
+    visible: false
   worker_node_shape:
     type: string
     title: "Worker Shape"
@@ -198,3 +202,4 @@ variables:
     type: string
     title: "Worker Custom Image OCID"
     required: false
+    visible: false

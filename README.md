@@ -193,7 +193,8 @@ La instancia se crea con:
 
 El `user_data` definido en `main.tf` realiza este bootstrap inicial:
 
-- Actualiza el sistema e instala paquetes base: `python3`, `pip`, `curl`, `unzip`, `jq`, `telnet`
+- Instala los paquetes base necesarios: `python3`, `pip`, `curl`, `unzip`, `jq`, `telnet` y `dnf-plugins-core`
+- Instala Docker Engine, habilita el servicio con `systemctl enable --now docker` y agrega `opc` al grupo `docker`
 - Instala OCI CLI en `/opt/oci-cli` y publica el ejecutable en `/usr/local/bin`
 - Descarga e instala `kubectl` segun la arquitectura de la VM
 - Crea `/root/.oci`, `/home/opc/.oci`, `/root/.kube` y `/home/opc/.kube`

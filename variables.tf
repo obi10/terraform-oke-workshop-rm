@@ -186,7 +186,7 @@ variable "apps_node_pool_name" {
 variable "apps_worker_node_count" {
   description = "Cantidad de nodos en el segundo node pool"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "worker_node_shape" {

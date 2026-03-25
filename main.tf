@@ -43,9 +43,14 @@ locals {
     #!/bin/bash
     set -euxo pipefail
 
-    dnf -y update
     dnf -y install oraclelinux-developer-release-el9
-    dnf -y install python3 python3-pip curl unzip jq telnet
+    dnf -y install python3 python3-pip curl unzip jq telnet dnf-plugins-core
+
+    # -- Docker ----------------------------------------------------------------
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    systemctl enable --now docker
+    usermod -aG docker opc
 
     bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" \
       -- --accept-all-defaults --install-dir /opt/oci-cli --exec-dir /usr/local/bin
