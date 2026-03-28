@@ -246,521 +246,6 @@ resource "oci_core_network_security_group" "bastion" {
   defined_tags  = var.defined_tags
 }
 
-resource "oci_core_network_security_group_security_rule" "api_ingress_workers_6443" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.workers_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Workers to K8s API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_workers_12250" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.workers_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Workers to K8s API 12250"
-
-  tcp_options {
-    destination_port_range {
-      min = 12250
-      max = 12250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_pods_6443" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.pods_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Pods to K8s API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_pods_12250" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.pods_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Pods to K8s API 12250"
-
-  tcp_options {
-    destination_port_range {
-      min = 12250
-      max = 12250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_pods_apps_6443" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.pods_apps_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Apps pods to K8s API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_pods_apps_12250" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.pods_apps_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Apps pods to K8s API 12250"
-
-  tcp_options {
-    destination_port_range {
-      min = 12250
-      max = 12250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_bastion_6443" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.bastion_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Bastion to K8s API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_ingress_external_6443" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = "0.0.0.0/0"
-  source_type               = "CIDR_BLOCK"
-  description               = "External to K8s API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_egress_workers_10250" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.workers_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "K8s API to workers 10250"
-
-  tcp_options {
-    destination_port_range {
-      min = 10250
-      max = 10250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "api_egress_pods_all" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "EGRESS"
-  protocol                  = "all"
-  destination               = var.pods_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "K8s API to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "api_egress_pods_apps_all" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "EGRESS"
-  protocol                  = "all"
-  destination               = var.pods_apps_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "K8s API to apps pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "api_egress_services_tcp" {
-  network_security_group_id = oci_core_network_security_group.api_endpoint.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = local.all_services_cidr
-  destination_type          = "SERVICE_CIDR_BLOCK"
-  description               = "K8s API to OCI services"
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_ingress_api_10250" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.api_endpoint_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "API to workers 10250"
-
-  tcp_options {
-    destination_port_range {
-      min = 10250
-      max = 10250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_ingress_bastion_22" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.bastion_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Bastion to workers SSH"
-
-  tcp_options {
-    destination_port_range {
-      min = 22
-      max = 22
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_ingress_lb_nodeports" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.load_balancer_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "LB to worker nodeports"
-
-  tcp_options {
-    destination_port_range {
-      min = 30000
-      max = 32767
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_ingress_lb_kubeproxy" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.load_balancer_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "LB to kube-proxy"
-
-  tcp_options {
-    destination_port_range {
-      min = 10256
-      max = 10256
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_egress_pods_all" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "EGRESS"
-  protocol                  = "all"
-  destination               = var.pods_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Workers to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_egress_pods_apps_all" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "EGRESS"
-  protocol                  = "all"
-  destination               = var.pods_apps_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Workers to apps pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_egress_api_6443" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.api_endpoint_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Workers to API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_egress_api_12250" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.api_endpoint_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Workers to API 12250"
-
-  tcp_options {
-    destination_port_range {
-      min = 12250
-      max = 12250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "workers_egress_services_tcp" {
-  network_security_group_id = oci_core_network_security_group.workers.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = local.all_services_cidr
-  destination_type          = "SERVICE_CIDR_BLOCK"
-  description               = "Workers to OCI services"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_ingress_workers_all" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "INGRESS"
-  protocol                  = "all"
-  source                    = var.workers_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Workers to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_ingress_api_all" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "INGRESS"
-  protocol                  = "all"
-  source                    = var.api_endpoint_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "API to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_ingress_pods_all" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "INGRESS"
-  protocol                  = "all"
-  source                    = var.pods_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Pods to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_egress_pods_all" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "EGRESS"
-  protocol                  = "all"
-  destination               = var.pods_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Pods to pods"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_egress_api_6443" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.api_endpoint_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Pods to API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_egress_api_12250" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.api_endpoint_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Pods to API 12250"
-
-  tcp_options {
-    destination_port_range {
-      min = 12250
-      max = 12250
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_egress_services_tcp" {
-  network_security_group_id = oci_core_network_security_group.pods.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = local.all_services_cidr
-  destination_type          = "SERVICE_CIDR_BLOCK"
-  description               = "Pods to OCI services"
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_apps_ingress_self_8080" {
-  network_security_group_id = oci_core_network_security_group.pods_apps.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = var.bastion_subnet_cidr
-  source_type               = "CIDR_BLOCK"
-  description               = "Apps pods to apps pods 8080"
-
-  tcp_options {
-    destination_port_range {
-      min = 8080
-      max = 8080
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "pods_apps_egress_self_8080" {
-  network_security_group_id = oci_core_network_security_group.pods_apps.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.bastion_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Apps pods to apps pods 8080"
-
-  tcp_options {
-    destination_port_range {
-      min = 8080
-      max = 8080
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "load_balancer_ingress_https" {
-  network_security_group_id = oci_core_network_security_group.load_balancer.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = "0.0.0.0/0"
-  source_type               = "CIDR_BLOCK"
-  description               = "Public LB listener 443"
-
-  tcp_options {
-    destination_port_range {
-      min = 443
-      max = 443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "load_balancer_ingress_http" {
-  network_security_group_id = oci_core_network_security_group.load_balancer.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = "0.0.0.0/0"
-  source_type               = "CIDR_BLOCK"
-  description               = "Public LB listener 80"
-
-  tcp_options {
-    destination_port_range {
-      min = 80
-      max = 80
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "load_balancer_egress_workers_nodeports" {
-  network_security_group_id = oci_core_network_security_group.load_balancer.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.workers_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "LB to worker nodeports"
-
-  tcp_options {
-    destination_port_range {
-      min = 30000
-      max = 32767
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "load_balancer_egress_workers_kubeproxy" {
-  network_security_group_id = oci_core_network_security_group.load_balancer.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.workers_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "LB to worker kube-proxy 10256"
-
-  tcp_options {
-    destination_port_range {
-      min = 10256
-      max = 10256
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "bastion_egress_api_6443" {
-  network_security_group_id = oci_core_network_security_group.bastion.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.api_endpoint_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Bastion to API 6443"
-
-  tcp_options {
-    destination_port_range {
-      min = 6443
-      max = 6443
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "bastion_ingress_ssh" {
-  network_security_group_id = oci_core_network_security_group.bastion.id
-  direction                 = "INGRESS"
-  protocol                  = "6"
-  source                    = "0.0.0.0/0"
-  source_type               = "CIDR_BLOCK"
-  description               = "SSH to bastion"
-
-  tcp_options {
-    destination_port_range {
-      min = 22
-      max = 22
-    }
-  }
-}
-
-resource "oci_core_network_security_group_security_rule" "bastion_egress_workers_22" {
-  network_security_group_id = oci_core_network_security_group.bastion.id
-  direction                 = "EGRESS"
-  protocol                  = "6"
-  destination               = var.workers_subnet_cidr
-  destination_type          = "CIDR_BLOCK"
-  description               = "Bastion to workers SSH"
-
-  tcp_options {
-    destination_port_range {
-      min = 22
-      max = 22
-    }
-  }
-}
-
 resource "oci_core_route_table" "api_endpoint" {
   compartment_id = oci_identity_compartment.oke.id
   vcn_id         = oci_core_vcn.oke.id
@@ -962,6 +447,17 @@ resource "oci_core_security_list" "api_endpoint" {
     }
   }
 
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
+  }
+
   egress_security_rules {
     protocol         = "6"
     destination      = local.all_services_cidr
@@ -1023,18 +519,6 @@ resource "oci_core_security_list" "workers" {
   display_name   = "sl-workers-${local.cluster_name}"
 
   ingress_security_rules {
-    protocol    = "6"
-    source      = var.api_endpoint_subnet_cidr
-    source_type = "CIDR_BLOCK"
-    description = "salida a internet para worker nodes, permite descarga de images docker del dockerhub"
-
-    tcp_options {
-      min = 10250
-      max = 10250
-    }
-  }
-
-  ingress_security_rules {
     protocol    = "1"
     source      = "0.0.0.0/0"
     source_type = "CIDR_BLOCK"
@@ -1042,6 +526,17 @@ resource "oci_core_security_list" "workers" {
     icmp_options {
       type = 3
       code = 4
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = var.api_endpoint_subnet_cidr
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 10250
+      max = 10250
     }
   }
 
@@ -1069,12 +564,51 @@ resource "oci_core_security_list" "workers" {
 
   ingress_security_rules {
     protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 8080
+      max = 8080
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = var.load_balancer_subnet_cidr
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 30890
+      max = 30890
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
     source      = var.load_balancer_subnet_cidr
     source_type = "CIDR_BLOCK"
 
     tcp_options {
       min = 10256
       max = 10256
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = var.load_balancer_subnet_cidr
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 30896
+      max = 30896
     }
   }
 
@@ -1138,6 +672,12 @@ resource "oci_core_security_list" "workers" {
       min = 443
       max = 443
     }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
   }
 
   freeform_tags = var.freeform_tags
@@ -1151,12 +691,6 @@ resource "oci_core_security_list" "pods_apps" {
 
   ingress_security_rules {
     protocol    = "all"
-    source      = var.workers_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
     source      = var.api_endpoint_subnet_cidr
     source_type = "CIDR_BLOCK"
   }
@@ -1173,16 +707,28 @@ resource "oci_core_security_list" "pods_apps" {
     source_type = "CIDR_BLOCK"
   }
 
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_apps_subnet_cidr
-    destination_type = "CIDR_BLOCK"
+  ingress_security_rules {
+    protocol    = "all"
+    source      = var.workers_subnet_cidr
+    source_type = "CIDR_BLOCK"
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
   }
 
   egress_security_rules {
     protocol         = "all"
     destination      = var.pods_subnet_cidr
     destination_type = "CIDR_BLOCK"
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = local.all_services_cidr
+    destination_type = "SERVICE_CIDR_BLOCK"
   }
 
   egress_security_rules {
@@ -1198,19 +744,13 @@ resource "oci_core_security_list" "pods_apps" {
 
   egress_security_rules {
     protocol         = "6"
-    destination      = "0.0.0.0/0"
+    destination      = var.api_endpoint_subnet_cidr
     destination_type = "CIDR_BLOCK"
 
     tcp_options {
-      min = 443
-      max = 443
+      min = 12250
+      max = 12250
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = local.all_services_cidr
-    destination_type = "SERVICE_CIDR_BLOCK"
   }
 
   egress_security_rules {
@@ -1226,13 +766,25 @@ resource "oci_core_security_list" "pods_apps" {
 
   egress_security_rules {
     protocol         = "6"
-    destination      = var.api_endpoint_subnet_cidr
+    destination      = "0.0.0.0/0"
     destination_type = "CIDR_BLOCK"
 
     tcp_options {
-      min = 12250
-      max = 12250
+      min = 443
+      max = 443
     }
+  }
+
+  egress_security_rules {
+    protocol         = "all"
+    destination      = var.pods_apps_subnet_cidr
+    destination_type = "CIDR_BLOCK"
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
   }
 
   freeform_tags = var.freeform_tags
@@ -1243,12 +795,6 @@ resource "oci_core_security_list" "pods" {
   compartment_id = oci_identity_compartment.oke.id
   vcn_id         = oci_core_vcn.oke.id
   display_name   = "sl-pods-${local.cluster_name}"
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.workers_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
 
   ingress_security_rules {
     protocol    = "all"
@@ -1280,6 +826,18 @@ resource "oci_core_security_list" "pods" {
     destination_type = "CIDR_BLOCK"
   }
 
+  ingress_security_rules {
+    protocol    = "all"
+    source      = var.workers_subnet_cidr
+    source_type = "CIDR_BLOCK"
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+  }
+
   egress_security_rules {
     protocol         = "1"
     destination      = local.all_services_cidr
@@ -1306,6 +864,12 @@ resource "oci_core_security_list" "pods" {
       min = 443
       max = 443
     }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
   }
 
   egress_security_rules {
@@ -1360,6 +924,28 @@ resource "oci_core_security_list" "load_balancer" {
     source_type = "CIDR_BLOCK"
   }
 
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+
   egress_security_rules {
     protocol         = "6"
     destination      = var.workers_subnet_cidr
@@ -1373,12 +959,40 @@ resource "oci_core_security_list" "load_balancer" {
 
   egress_security_rules {
     protocol         = "6"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = var.workers_subnet_cidr
+    destination_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 30890
+      max = 30890
+    }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
     destination      = var.workers_subnet_cidr
     destination_type = "CIDR_BLOCK"
 
     tcp_options {
       min = 10256
       max = 10256
+    }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination      = var.workers_subnet_cidr
+    destination_type = "CIDR_BLOCK"
+
+    tcp_options {
+      min = 30896
+      max = 30896
     }
   }
 

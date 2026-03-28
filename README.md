@@ -165,14 +165,12 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 
 ## 6. NSGs (resumen)
 
-- `nsg-api-endpoint-<cluster>`: control de trafico del endpoint Kubernetes.
-- `nsg-workers-<cluster>`: control de trafico de nodos worker.
-- `nsg-pods-<cluster>`: control de pods del pool #1.
-- `nsg-pods-apps-<cluster>`: control restrictivo para pods del pool #2:
-  - Ingress: TCP `8080` desde `100.0.64.0/19`
-  - Egress: TCP `8080` hacia `100.0.64.0/19`
-- `nsg-lb-<cluster>`: listeners publicos y salida a nodeports/kube-proxy.
-- `nsg-bastion-<cluster>`: salida desde bastion hacia API/workers.
+- `nsg-api-endpoint-<cluster>`: creado sin reglas.
+- `nsg-workers-<cluster>`: creado sin reglas.
+- `nsg-pods-<cluster>`: creado sin reglas.
+- `nsg-pods-apps-<cluster>`: creado sin reglas.
+- `nsg-lb-<cluster>`: creado sin reglas.
+- `nsg-bastion-<cluster>`: creado sin reglas.
 
 ## 7. Nomenclatura aplicada
 
