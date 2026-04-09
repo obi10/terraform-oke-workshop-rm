@@ -1,6 +1,6 @@
 title: "OKE Workshop for Resource Manager"
-description: "Despliega un cluster OKE con bastion y red dedicada. Resource Manager autocompleta tenancy_ocid, compartment_ocid y region."
-stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion."
+description: "Despliega un cluster OKE con bastion y red dedicada usando una sola subnet de pods compartida. Resource Manager autocompleta tenancy_ocid, compartment_ocid y region."
+stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion, dos node pools y una subnet de pods compartida."
 schemaVersion: "1.1.0"
 version: "1.0.0"
 locale: "en"
@@ -36,7 +36,6 @@ variableGroups:
       - ${api_endpoint_subnet_cidr}
       - ${workers_subnet_cidr}
       - ${pods_subnet_cidr}
-      - ${pods_apps_subnet_cidr}
       - ${load_balancer_subnet_cidr}
       - ${bastion_subnet_cidr}
       - ${services_cidr}
@@ -103,79 +102,97 @@ variables:
   cluster_name:
     type: string
     title: "Cluster Name"
+    description: "Nombre del cluster OKE."
   cluster_type:
     type: string
     title: "Cluster Type"
+    description: "Tipo de cluster OKE a desplegar."
     enum:
       - "ENHANCED_CLUSTER"
       - "BASIC_CLUSTER"
   kubernetes_version:
     type: string
     title: "Kubernetes Version"
+    description: "Version de Kubernetes para el cluster y los node pools."
   node_pool_name:
     type: string
     title: "Primary Node Pool Name"
+    description: "Nombre del node pool principal."
   worker_node_count:
     type: number
     title: "Primary Node Count"
+    description: "Cantidad de nodos del node pool principal."
     minimum: 1
   apps_node_pool_name:
     type: string
     title: "Apps Node Pool Name"
+    description: "Nombre del segundo node pool."
   apps_worker_node_count:
     type: number
     title: "Apps Node Count"
+    description: "Cantidad de nodos del segundo node pool."
     minimum: 1
   vcn_cidr:
     type: string
     title: "VCN CIDR"
+    description: "CIDR principal de la VCN."
   vcn_additional_cidr_blocks:
     type: array
     title: "Additional VCN CIDRs"
+    description: "CIDRs adicionales que se asociaran a la VCN."
     items:
       type: string
   api_endpoint_subnet_cidr:
     type: string
     title: "API Endpoint Subnet CIDR"
+    description: "CIDR de la subnet publica del API endpoint del cluster."
   workers_subnet_cidr:
     type: string
     title: "Workers Subnet CIDR"
+    description: "CIDR de la subnet privada de worker nodes."
   pods_subnet_cidr:
     type: string
-    title: "Pods Subnet CIDR"
-  pods_apps_subnet_cidr:
-    type: string
-    title: "Apps Pods Subnet CIDR"
+    title: "Shared Pods Subnet CIDR"
+    description: "CIDR de la subnet privada de pods compartida por todos los node pools."
   load_balancer_subnet_cidr:
     type: string
     title: "Load Balancer Subnet CIDR"
+    description: "CIDR de la subnet publica para load balancers."
   bastion_subnet_cidr:
     type: string
     title: "Bastion Subnet CIDR"
+    description: "CIDR de la subnet publica de la VM bastion."
   services_cidr:
     type: string
     title: "Kubernetes Services CIDR"
+    description: "CIDR reservado para los servicios internos de Kubernetes."
   bastion_shape:
     type: string
     title: "Bastion Shape"
+    description: "Shape de la VM bastion."
   bastion_ocpus:
     type: number
     title: "Bastion OCPUs"
+    description: "Cantidad de OCPUs para la VM bastion."
     minimum: 1
   bastion_memory_gbs:
     type: number
     title: "Bastion Memory (GB)"
+    description: "Memoria en GB para la VM bastion."
     minimum: 1
   bastion_boot_volume_size_gbs:
     type: number
     title: "Bastion Boot Volume Size (GB)"
+    description: "Tamano del boot volume en GB para la VM bastion."
     minimum: 50
   bastion_image_os:
     type: string
     title: "Bastion Image OS"
+    description: "Sistema operativo base para la bastion."
   bastion_image_os_version:
     type: string
     title: "Bastion Image OS Version"
+    description: "Version del sistema operativo para la bastion."
   bastion_image_id:
     type: string
     title: "Bastion Custom Image OCID"
@@ -184,20 +201,25 @@ variables:
   worker_node_shape:
     type: string
     title: "Worker Shape"
+    description: "Shape de los worker nodes."
   worker_node_ocpus:
     type: number
     title: "Worker OCPUs"
+    description: "Cantidad de OCPUs por worker node."
     minimum: 1
   worker_node_memory_gbs:
     type: number
     title: "Worker Memory (GB)"
+    description: "Memoria en GB por worker node."
     minimum: 1
   worker_image_os:
     type: string
     title: "Worker Image OS"
+    description: "Sistema operativo base para los worker nodes."
   worker_image_os_version:
     type: string
     title: "Worker Image OS Version"
+    description: "Version del sistema operativo para los worker nodes."
   worker_image_id:
     type: string
     title: "Worker Custom Image OCID"

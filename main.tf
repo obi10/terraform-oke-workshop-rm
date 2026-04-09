@@ -43,6 +43,7 @@ locals {
     #!/bin/bash
     set -euxo pipefail
 
+    dnf -y upgrade-minimal --security
     dnf -y install oraclelinux-developer-release-el9
     dnf -y install python3 python3-pip curl unzip jq telnet dnf-plugins-core
 
@@ -55,7 +56,7 @@ locals {
     bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" \
       -- --accept-all-defaults --install-dir /opt/oci-cli --exec-dir /usr/local/bin
 
-    # -- kubectl ----------------------------------------------------------------
+    # -- kubectl ---------------------------------------------------------------
     ARCH="$(uname -m)"
     if [ "$ARCH" = "aarch64" ]; then
       KARCH="arm64"
@@ -67,11 +68,11 @@ locals {
     curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$${KVER}/bin/linux/$${KARCH}/kubectl"
     chmod +x /usr/local/bin/kubectl
 
-    # -- OCI dirs ----------------------------------------------------------------
+    # -- OCI dirs --------------------------------------------------------------
     install -d -m 700 /root/.oci
     install -d -m 700 -o opc -g opc /home/opc/.oci
 
-    # -- Write API private key ---------------------------------------------------
+    # -- Write API private key -------------------------------------------------
     cat <<'PEMEOF' > /home/opc/.oci/oci_api_key.pem
     ${var.private_key_pem}
     PEMEOF
@@ -79,7 +80,7 @@ locals {
     cp /home/opc/.oci/oci_api_key.pem /root/.oci/oci_api_key.pem
     chmod 600 /root/.oci/oci_api_key.pem
 
-    # -- OCI CLI config with API key auth ---------------------------------------
+    # -- OCI CLI config with API key auth -------------------------------------
     cat <<'CONFEOF' > /home/opc/.oci/config
     [DEFAULT]
     user=${var.user_ocid}
@@ -95,15 +96,15 @@ locals {
     chmod 600 /root/.oci/config
     chown -R opc:opc /home/opc/.oci
 
-    # -- No instance_principal ---------------------------------------------------
+    # -- No instance_principal -------------------------------------------------
     printf '# OCI CLI uses config file auth\n' > /etc/profile.d/oci-cli.sh
     chmod 644 /etc/profile.d/oci-cli.sh
 
-    # -- kube dirs ----------------------------------------------------------------
+    # -- kube dirs -------------------------------------------------------------
     install -d -m 700 /root/.kube
     install -d -m 700 -o opc -g opc /home/opc/.kube
 
-    # -- kubeconfig with retry ----------------------------------------------------
+    # -- kubeconfig with retry -------------------------------------------------
     MAX_RETRIES=10
     SLEEP_SECONDS=30
 
@@ -148,6 +149,13 @@ resource "oci_identity_compartment" "oke" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_vcn" "oke" {
@@ -158,6 +166,13 @@ resource "oci_core_vcn" "oke" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_internet_gateway" "oke" {
@@ -168,6 +183,13 @@ resource "oci_core_internet_gateway" "oke" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_nat_gateway" "oke" {
@@ -177,6 +199,13 @@ resource "oci_core_nat_gateway" "oke" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_service_gateway" "oke" {
@@ -190,6 +219,13 @@ resource "oci_core_service_gateway" "oke" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_network_security_group" "api_endpoint" {
@@ -199,6 +235,13 @@ resource "oci_core_network_security_group" "api_endpoint" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_network_security_group" "workers" {
@@ -208,6 +251,13 @@ resource "oci_core_network_security_group" "workers" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_network_security_group" "pods" {
@@ -217,15 +267,13 @@ resource "oci_core_network_security_group" "pods" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
-}
 
-resource "oci_core_network_security_group" "pods_apps" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-pods-apps-${local.cluster_name}"
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_network_security_group" "load_balancer" {
@@ -235,6 +283,13 @@ resource "oci_core_network_security_group" "load_balancer" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_network_security_group" "bastion" {
@@ -244,6 +299,13 @@ resource "oci_core_network_security_group" "bastion" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_route_table" "api_endpoint" {
@@ -259,6 +321,13 @@ resource "oci_core_route_table" "api_endpoint" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_route_table" "workers" {
@@ -280,27 +349,13 @@ resource "oci_core_route_table" "workers" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
-}
 
-resource "oci_core_route_table" "pods_apps" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "rt-pods-apps-${local.cluster_name}"
-
-  route_rules {
-    destination       = "0.0.0.0/0"
-    destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_nat_gateway.oke.id
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
   }
-
-  route_rules {
-    destination       = local.all_services_cidr
-    destination_type  = "SERVICE_CIDR_BLOCK"
-    network_entity_id = oci_core_service_gateway.oke.id
-  }
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
 }
 
 resource "oci_core_route_table" "pods" {
@@ -322,6 +377,13 @@ resource "oci_core_route_table" "pods" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_route_table" "load_balancer" {
@@ -337,6 +399,13 @@ resource "oci_core_route_table" "load_balancer" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_route_table" "bastion" {
@@ -352,6 +421,13 @@ resource "oci_core_route_table" "bastion" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_security_list" "api_endpoint" {
@@ -368,6 +444,7 @@ resource "oci_core_security_list" "api_endpoint" {
       min = 6443
       max = 6443
     }
+    description = "Allow worker nodes to communicate with the API endpoint over the Kubernetes API port"
   }
 
   ingress_security_rules {
@@ -379,6 +456,7 @@ resource "oci_core_security_list" "api_endpoint" {
       min = 12250
       max = 12250
     }
+    description = "Allow worker nodes to communicate with the API endpoint over the Kubernetes API and kubelet ports"
   }
 
   ingress_security_rules {
@@ -390,6 +468,7 @@ resource "oci_core_security_list" "api_endpoint" {
       type = 3
       code = 4
     }
+    description = "Allow worker nodes to send ICMP unreachable messages for path MTU discovery and other network diagnostics"
   }
 
   ingress_security_rules {
@@ -412,28 +491,7 @@ resource "oci_core_security_list" "api_endpoint" {
       min = 12250
       max = 12250
     }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = var.pods_apps_subnet_cidr
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 6443
-      max = 6443
-    }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = var.pods_apps_subnet_cidr
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 12250
-      max = 12250
-    }
+    description = "Allow pods to communicate with the API endpoint over the Kubernetes API and kubelet ports for CNI and kubelet operations"
   }
 
   ingress_security_rules {
@@ -445,23 +503,14 @@ resource "oci_core_security_list" "api_endpoint" {
       min = 6443
       max = 6443
     }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 6443
-      max = 6443
-    }
+    description = "Allow bastion host to communicate with the API endpoint over the Kubernetes API port for administration and troubleshooting"
   }
 
   egress_security_rules {
     protocol         = "6"
     destination      = local.all_services_cidr
     destination_type = "SERVICE_CIDR_BLOCK"
+    description      = "Allow API endpoint to access Oracle Services Network for communicate to OKE's control plane and pulling container images from OCIR"
   }
 
   egress_security_rules {
@@ -473,6 +522,7 @@ resource "oci_core_security_list" "api_endpoint" {
       type = 3
       code = 4
     }
+    description = "Allow API endpoint to send ICMP unreachable messages for path MTU discovery and other network diagnostics when communicating with Oracle Services Network"
   }
 
   egress_security_rules {
@@ -484,6 +534,7 @@ resource "oci_core_security_list" "api_endpoint" {
       min = 10250
       max = 10250
     }
+    description = "Allow API endpoint to communicate with worker nodes over the kubelet port for node management and monitoring"
   }
 
   egress_security_rules {
@@ -495,39 +546,31 @@ resource "oci_core_security_list" "api_endpoint" {
       type = 3
       code = 4
     }
+    description = "Allow API endpoint to send ICMP unreachable messages for path MTU discovery and other network diagnostics when communicating with worker nodes"
   }
 
   egress_security_rules {
     protocol         = "all"
     destination      = var.pods_subnet_cidr
     destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_apps_subnet_cidr
-    destination_type = "CIDR_BLOCK"
+    description      = "Allow API endpoint to communicate with pods over the pod subnet for CNI and kubelet operations"
   }
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_security_list" "workers" {
   compartment_id = oci_identity_compartment.oke.id
   vcn_id         = oci_core_vcn.oke.id
   display_name   = "sl-workers-${local.cluster_name}"
-
-  ingress_security_rules {
-    protocol    = "1"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-
-    icmp_options {
-      type = 3
-      code = 4
-    }
-  }
 
   ingress_security_rules {
     protocol    = "6"
@@ -538,6 +581,19 @@ resource "oci_core_security_list" "workers" {
       min = 10250
       max = 10250
     }
+    description = "Allow API endpoint to communicate with worker nodes over the kubelet port for node management and monitoring"
+  }
+
+  ingress_security_rules {
+    protocol    = "1"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
+    description = "Allow API endpoint and other sources to send ICMP unreachable messages for path MTU discovery and other network diagnostics"
   }
 
   ingress_security_rules {
@@ -549,6 +605,7 @@ resource "oci_core_security_list" "workers" {
       min = 22
       max = 22
     }
+    description = "Allow bastion host to communicate with worker nodes over SSH for administration and troubleshooting"
   }
 
   ingress_security_rules {
@@ -560,34 +617,7 @@ resource "oci_core_security_list" "workers" {
       min = 30000
       max = 32767
     }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 8080
-      max = 8080
-    }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = var.load_balancer_subnet_cidr
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 30890
-      max = 30890
-    }
+    description = "Allow load balancer to communicate with worker nodes over the NodePort range for Kubernetes services exposed via NodePort"
   }
 
   ingress_security_rules {
@@ -599,46 +629,21 @@ resource "oci_core_security_list" "workers" {
       min = 10256
       max = 10256
     }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = var.load_balancer_subnet_cidr
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 30896
-      max = 30896
-    }
+    description = "Allow load balancer to communicate with worker nodes over the Kubernetes API and kubelet port for health checks and other operations"
   }
 
   egress_security_rules {
     protocol         = "all"
     destination      = var.pods_subnet_cidr
     destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_apps_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "1"
-    destination      = local.all_services_cidr
-    destination_type = "SERVICE_CIDR_BLOCK"
-
-    icmp_options {
-      type = 3
-      code = 4
-    }
+    description      = "Allow worker nodes to communicate with pods over the pod subnet for CNI and kubelet operations"
   }
 
   egress_security_rules {
     protocol         = "6"
     destination      = local.all_services_cidr
     destination_type = "SERVICE_CIDR_BLOCK"
+    description      = "Allow worker nodes to access Oracle Services Network for communicate to OKE's control plane and pulling container images from OCIR"
   }
 
   egress_security_rules {
@@ -650,6 +655,7 @@ resource "oci_core_security_list" "workers" {
       min = 6443
       max = 6443
     }
+    description = "Allow worker nodes to communicate with the API endpoint over the Kubernetes API port"
   }
 
   egress_security_rules {
@@ -661,107 +667,19 @@ resource "oci_core_security_list" "workers" {
       min = 12250
       max = 12250
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = "0.0.0.0/0"
-    destination_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 443
-      max = 443
-    }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = "0.0.0.0/0"
-    destination_type = "CIDR_BLOCK"
-  }
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-}
-
-resource "oci_core_security_list" "pods_apps" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "sl-pods-apps-${local.cluster_name}"
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.api_endpoint_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.pods_apps_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.pods_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.workers_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = local.all_services_cidr
-    destination_type = "SERVICE_CIDR_BLOCK"
+    description = "Allow worker nodes to communicate with the API endpoint over the Kubernetes API and kubelet ports"
   }
 
   egress_security_rules {
     protocol         = "1"
-    destination      = local.all_services_cidr
-    destination_type = "SERVICE_CIDR_BLOCK"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
 
     icmp_options {
       type = 3
       code = 4
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = var.api_endpoint_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 12250
-      max = 12250
-    }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = var.api_endpoint_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 6443
-      max = 6443
-    }
+    description = "Allow worker nodes to send ICMP unreachable messages for path MTU discovery and other network diagnostics"
   }
 
   egress_security_rules {
@@ -773,22 +691,18 @@ resource "oci_core_security_list" "pods_apps" {
       min = 443
       max = 443
     }
-  }
-
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_apps_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = "0.0.0.0/0"
-    destination_type = "CIDR_BLOCK"
+    description = "Allow worker nodes to access external container registries and other services over HTTPS"
   }
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_security_list" "pods" {
@@ -798,44 +712,30 @@ resource "oci_core_security_list" "pods" {
 
   ingress_security_rules {
     protocol    = "all"
+    source      = var.workers_subnet_cidr
+    source_type = "CIDR_BLOCK"
+    description = "Allow worker nodes to communicate with pods over the pod subnet for CNI and kubelet operations"
+  }
+
+  ingress_security_rules {
+    protocol    = "all"
     source      = var.api_endpoint_subnet_cidr
     source_type = "CIDR_BLOCK"
+    description = "Allow API endpoint to communicate with pods over the pod subnet for CNI and kubelet operations"
   }
 
   ingress_security_rules {
     protocol    = "all"
     source      = var.pods_subnet_cidr
     source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.pods_apps_subnet_cidr
-    source_type = "CIDR_BLOCK"
+    description = "Allow pods to communicate with each other over the pod subnet for CNI and kubelet operations"
   }
 
   egress_security_rules {
     protocol         = "all"
     destination      = var.pods_subnet_cidr
     destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "all"
-    destination      = var.pods_apps_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "all"
-    source      = var.workers_subnet_cidr
-    source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
+    description      = "Allow pods to communicate with each other over the pod subnet for CNI and kubelet operations"
   }
 
   egress_security_rules {
@@ -847,12 +747,14 @@ resource "oci_core_security_list" "pods" {
       type = 3
       code = 4
     }
+    description = "Allow pods to send ICMP unreachable messages for path MTU discovery and other network diagnostics"
   }
 
   egress_security_rules {
     protocol         = "6"
     destination      = local.all_services_cidr
     destination_type = "SERVICE_CIDR_BLOCK"
+    description      = "Allow pods to access Oracle Services Network for communicate to OKE's control plane and pulling container images from OCIR"
   }
 
   egress_security_rules {
@@ -864,12 +766,7 @@ resource "oci_core_security_list" "pods" {
       min = 443
       max = 443
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = "0.0.0.0/0"
-    destination_type = "CIDR_BLOCK"
+    description = "Allow pods to access external container registries and other services over HTTPS"
   }
 
   egress_security_rules {
@@ -881,6 +778,7 @@ resource "oci_core_security_list" "pods" {
       min = 6443
       max = 6443
     }
+    description = "Allow pods to communicate with the API endpoint over the Kubernetes API port for CNI and kubelet operations"
   }
 
   egress_security_rules {
@@ -892,25 +790,18 @@ resource "oci_core_security_list" "pods" {
       min = 12250
       max = 12250
     }
+    description = "Allow pods to communicate with the API endpoint over the Kubernetes API and kubelet ports for CNI and kubelet operations"
   }
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
-}
 
-resource "oci_core_subnet" "pods_apps" {
-  compartment_id             = oci_identity_compartment.oke.id
-  vcn_id                     = oci_core_vcn.oke.id
-  cidr_block                 = var.pods_apps_subnet_cidr
-  display_name               = "snet-pods-apps-${local.cluster_name}"
-  dns_label                  = "podapps"
-  security_list_ids          = [oci_core_security_list.pods_apps.id]
-  route_table_id             = oci_core_route_table.pods_apps.id
-  prohibit_public_ip_on_vnic = true
-  prohibit_internet_ingress  = true
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_security_list" "load_balancer" {
@@ -922,28 +813,7 @@ resource "oci_core_security_list" "load_balancer" {
     protocol    = "6"
     source      = "0.0.0.0/0"
     source_type = "CIDR_BLOCK"
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 443
-      max = 443
-    }
-  }
-
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 80
-      max = 80
-    }
+    description = "Allow incoming traffic to load balancer from any source for Kubernetes services exposed via LoadBalancer"
   }
 
   egress_security_rules {
@@ -955,23 +825,7 @@ resource "oci_core_security_list" "load_balancer" {
       min = 30000
       max = 32767
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = "0.0.0.0/0"
-    destination_type = "CIDR_BLOCK"
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = var.workers_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 30890
-      max = 30890
-    }
+    description = "Allow load balancer to communicate with worker nodes over the NodePort range for Kubernetes services exposed via NodePort"
   }
 
   egress_security_rules {
@@ -983,21 +837,18 @@ resource "oci_core_security_list" "load_balancer" {
       min = 10256
       max = 10256
     }
-  }
-
-  egress_security_rules {
-    protocol         = "6"
-    destination      = var.workers_subnet_cidr
-    destination_type = "CIDR_BLOCK"
-
-    tcp_options {
-      min = 30896
-      max = 30896
-    }
+    description = "Allow load balancer to communicate with worker nodes over the Kubernetes API and kubelet port for health checks and other operations"
   }
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_security_list" "bastion" {
@@ -1014,6 +865,7 @@ resource "oci_core_security_list" "bastion" {
       min = 22
       max = 22
     }
+    description = "Allow incoming SSH traffic to bastion host from any source for administration and troubleshooting"
   }
 
   egress_security_rules {
@@ -1025,6 +877,7 @@ resource "oci_core_security_list" "bastion" {
       min = 6443
       max = 6443
     }
+    description = "Allow bastion host to communicate with the API endpoint over the Kubernetes API port for administration and troubleshooting"
   }
 
   egress_security_rules {
@@ -1036,16 +889,25 @@ resource "oci_core_security_list" "bastion" {
       min = 22
       max = 22
     }
+    description = "Allow bastion host to communicate with worker nodes over SSH for administration and troubleshooting"
   }
 
   egress_security_rules {
     protocol         = "all"
     destination      = "0.0.0.0/0"
     destination_type = "CIDR_BLOCK"
+    description      = "Allow bastion host to access external resources for administration and troubleshooting"
   }
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_subnet" "api_endpoint" {
@@ -1060,6 +922,13 @@ resource "oci_core_subnet" "api_endpoint" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_subnet" "workers" {
@@ -1075,6 +944,13 @@ resource "oci_core_subnet" "workers" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_subnet" "pods" {
@@ -1090,6 +966,13 @@ resource "oci_core_subnet" "pods" {
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 }
 
 resource "oci_core_subnet" "load_balancer" {
@@ -1106,6 +989,10 @@ resource "oci_core_subnet" "load_balancer" {
   defined_tags  = var.defined_tags
 
   lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
     create_before_destroy = true
   }
 }
@@ -1124,6 +1011,10 @@ resource "oci_core_subnet" "bastion" {
   defined_tags  = var.defined_tags
 
   lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
     create_before_destroy = true
   }
 }
@@ -1160,6 +1051,10 @@ resource "oci_core_instance" "bastion" {
   defined_tags  = var.defined_tags
 
   lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
     replace_triggered_by = [terraform_data.bastion_bootstrap]
 
     precondition {
@@ -1201,10 +1096,16 @@ resource "oci_containerengine_cluster" "oke" {
     oci_core_route_table.api_endpoint,
     oci_core_route_table.workers,
     oci_core_route_table.pods,
-    oci_core_route_table.pods_apps,
     oci_core_route_table.load_balancer,
     oci_core_route_table.bastion
   ]
+
+  lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+  }
 
   timeouts {
     create = "2h"
@@ -1252,6 +1153,11 @@ resource "oci_containerengine_node_pool" "workers" {
   defined_tags  = var.defined_tags
 
   lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+
     precondition {
       condition     = local.node_image_id != null
       error_message = "No se encontro una imagen Oracle Linux 8 compatible. Define var.worker_image_id."
@@ -1290,8 +1196,8 @@ resource "oci_containerengine_node_pool" "apps" {
 
     node_pool_pod_network_option_details {
       cni_type       = "OCI_VCN_IP_NATIVE"
-      pod_subnet_ids = [oci_core_subnet.pods_apps.id]
-      pod_nsg_ids    = [oci_core_network_security_group.pods_apps.id]
+      pod_subnet_ids = [oci_core_subnet.pods.id]
+      pod_nsg_ids    = [oci_core_network_security_group.pods.id]
     }
   }
 
@@ -1304,6 +1210,11 @@ resource "oci_containerengine_node_pool" "apps" {
   defined_tags  = var.defined_tags
 
   lifecycle {
+    ignore_changes = [
+      defined_tags["Oracle-Tags.CreatedBy"],
+      defined_tags["Oracle-Tags.CreatedOn"]
+    ]
+
     precondition {
       condition     = local.node_image_id != null
       error_message = "No se encontro una imagen Oracle Linux 8 compatible. Define var.worker_image_id."

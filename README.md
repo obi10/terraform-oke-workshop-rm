@@ -41,8 +41,7 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 - Subredes:
   - API endpoint (publica)
   - Workers (privada)
-  - Pods sistema/default (privada)
-  - Pods apps (privada)
+  - Pods compartida para todos los node pools (privada)
   - Load Balancer (publica)
   - Bastion (publica)
 - Seguridad de red por capa:
@@ -53,7 +52,7 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
   - Cluster `ENHANCED_CLUSTER`
   - CNI nativo OCI
   - Node Pool #1 (sistema/default)
-  - Node Pool #2 (apps)
+  - Node Pool #2 (apps) usando la misma subnet de pods
 - Bastion:
   - VM publica `vm-bastion-<cluster>`
   - Imagen Oracle Linux 9
@@ -65,8 +64,7 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 - VCN: `100.0.0.0/16` (adicional: `10.0.0.0/16`)
 - API endpoint subnet: `100.0.0.0/29`
 - Workers subnet: `100.0.1.0/24`
-- Pods subnet (pool #1): `100.0.32.0/19`
-- Pods apps subnet (pool #2): `100.0.64.0/19`
+- Pods subnet compartida: `100.0.32.0/19`
 - Load Balancer subnet: `100.0.2.0/24`
 - Bastion subnet: `100.0.3.0/24`
 
@@ -79,8 +77,8 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 
 - Node Pool #2 (`apps`):
   - Nodos en `snet-workers-<cluster>` (misma subnet de workers del pool #1)
-  - Pods en `snet-pods-apps-<cluster>`
-  - Pod NSG: `nsg-pods-apps-<cluster>`
+  - Pods en `snet-pods-<cluster>` (misma subnet de pods del pool #1)
+  - Pod NSG: `nsg-pods-<cluster>`
 
 ## 4. Route Tables (resumen)
 
@@ -95,10 +93,6 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
   - `0.0.0.0/0` -> NAT Gateway
   - `All <region> Services` -> Service Gateway
 
-- `rt-pods-apps-<cluster>`:
-  - `0.0.0.0/0` -> NAT Gateway
-  - `All <region> Services` -> Service Gateway
-
 - `rt-lb-<cluster>`:
   - `0.0.0.0/0` -> Internet Gateway
 
@@ -110,13 +104,12 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 ### API endpoint (`sl-api-endpoint-<cluster>`)
 - Ingress:
   - Desde workers: TCP `6443`, `12250`, ICMP `3,4`
-  - Desde pods default: TCP `6443`, `12250`
-  - Desde pods apps: TCP `6443`, `12250`
+  - Desde pods compartidos: TCP `6443`, `12250`
   - Desde bastion: TCP `6443`
 - Egress:
-  - Hacia `All <region> Services`: TCP/ALL, ICMP `3,4`
+  - Hacia `All <region> Services`: TCP, ICMP `3,4`
   - Hacia workers: TCP `10250`, ICMP `3,4`
-  - Hacia pods default y pods apps: ALL/ALL
+  - Hacia pods compartidos: ALL/ALL
 
 ### Workers (`sl-workers-<cluster>`)
 - Ingress:
@@ -125,30 +118,19 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
   - Desde LB subnet: TCP `30000-32767`, `10256`
   - ICMP `3,4`
 - Egress:
-  - Hacia pods default y pods apps: ALL/ALL
+  - Hacia pods compartidos: ALL/ALL
   - Hacia API: TCP `6443`, `12250`
-  - Hacia OCI services: TCP/ALL
+  - Hacia OCI services: TCP
   - Hacia internet: TCP `443`, ICMP `3,4`
 
-### Pods default (`sl-pods-<cluster>`)
+### Pods compartidos (`sl-pods-<cluster>`)
 - Ingress:
   - Desde workers: ALL/ALL
   - Desde API: ALL/ALL
-  - Desde mismo CIDR pods default: ALL/ALL
+  - Desde mismo CIDR pods: ALL/ALL
 - Egress:
-  - Hacia mismo CIDR pods default: ALL/ALL
-  - Hacia OCI services: TCP/ALL, ICMP `3,4`
-  - Hacia internet: TCP `443`
-  - Hacia API: TCP `6443`, `12250`
-
-### Pods apps (`sl-pods-apps-<cluster>`)
-- Ingress:
-  - Desde workers: ALL/ALL
-  - Desde API: ALL/ALL
-  - Desde mismo CIDR pods apps: ALL/ALL
-- Egress:
-  - Hacia mismo CIDR pods apps: ALL/ALL
-  - Hacia OCI services: TCP/ALL, ICMP `3,4`
+  - Hacia mismo CIDR pods: ALL/ALL
+  - Hacia OCI services: TCP, ICMP `3,4`
   - Hacia internet: TCP `443`
   - Hacia API: TCP `6443`, `12250`
 
@@ -168,7 +150,6 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 - `nsg-api-endpoint-<cluster>`: creado sin reglas.
 - `nsg-workers-<cluster>`: creado sin reglas.
 - `nsg-pods-<cluster>`: creado sin reglas.
-- `nsg-pods-apps-<cluster>`: creado sin reglas.
 - `nsg-lb-<cluster>`: creado sin reglas.
 - `nsg-bastion-<cluster>`: creado sin reglas.
 
@@ -191,6 +172,7 @@ La instancia se crea con:
 
 El `user_data` definido en `main.tf` realiza este bootstrap inicial:
 
+- Ejecuta `dnf -y upgrade-minimal --security` en lugar de un `dnf update` global
 - Instala los paquetes base necesarios: `python3`, `pip`, `curl`, `unzip`, `jq`, `telnet` y `dnf-plugins-core`
 - Instala Docker Engine, habilita el servicio con `systemctl enable --now docker` y agrega `opc` al grupo `docker`
 - Instala OCI CLI en `/opt/oci-cli` y publica el ejecutable en `/usr/local/bin`

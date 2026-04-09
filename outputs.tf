@@ -38,13 +38,8 @@ output "oke_workers_subnet_id" {
   value       = oci_core_subnet.workers.id
 }
 
-output "oke_pods_apps_subnet_id" {
-  description = "OCID de subnet privada para pods del pool apps"
-  value       = oci_core_subnet.pods_apps.id
-}
-
 output "oke_pods_subnet_id" {
-  description = "OCID de subnet privada para pods"
+  description = "OCID de subnet privada compartida para pods"
   value       = oci_core_subnet.pods.id
 }
 
@@ -86,9 +81,4 @@ output "oke_bastion_nsg_id" {
 output "oke_bastion_instance_id" {
   description = "OCID de la VM bastion"
   value       = oci_core_instance.bastion.id
-}
-
-output "oke_pods_apps_nsg_id" {
-  description = "OCID de NSG para pods del pool apps"
-  value       = oci_core_network_security_group.pods_apps.id
 }

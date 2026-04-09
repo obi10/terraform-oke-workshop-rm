@@ -171,12 +171,6 @@ variable "worker_node_count" {
   default     = 1
 }
 
-variable "pods_apps_subnet_cidr" {
-  description = "CIDR de subnet privada de pods para el segundo pool"
-  type        = string
-  default     = "100.0.64.0/19"
-}
-
 variable "apps_node_pool_name" {
   description = "Nombre del segundo node pool"
   type        = string
