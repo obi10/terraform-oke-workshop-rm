@@ -1,6 +1,6 @@
 title: "OKE Workshop for Resource Manager"
 description: "Despliega un cluster OKE con bastion y red dedicada usando una sola subnet de pods compartida. Resource Manager autocompleta tenancy_ocid, compartment_ocid y region."
-stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion, dos node pools y una subnet de pods compartida."
+stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion, un node pool y una subnet de pods compartida."
 schemaVersion: "1.1.0"
 version: "1.0.0"
 locale: "en"
@@ -27,12 +27,9 @@ variableGroups:
       - ${kubernetes_version}
       - ${node_pool_name}
       - ${worker_node_count}
-      - ${apps_node_pool_name}
-      - ${apps_worker_node_count}
   - title: "Network Settings"
     variables:
       - ${vcn_cidr}
-      - ${vcn_additional_cidr_blocks}
       - ${api_endpoint_subnet_cidr}
       - ${workers_subnet_cidr}
       - ${pods_subnet_cidr}
@@ -113,35 +110,20 @@ variables:
   kubernetes_version:
     type: string
     title: "Kubernetes Version"
-    description: "Version de Kubernetes para el cluster y los node pools."
+    description: "Version de Kubernetes para el cluster y el node pool."
   node_pool_name:
     type: string
-    title: "Primary Node Pool Name"
-    description: "Nombre del node pool principal."
+    title: "Node Pool Name"
+    description: "Nombre del node pool."
   worker_node_count:
     type: number
-    title: "Primary Node Count"
-    description: "Cantidad de nodos del node pool principal."
-    minimum: 1
-  apps_node_pool_name:
-    type: string
-    title: "Apps Node Pool Name"
-    description: "Nombre del segundo node pool."
-  apps_worker_node_count:
-    type: number
-    title: "Apps Node Count"
-    description: "Cantidad de nodos del segundo node pool."
+    title: "Node Count"
+    description: "Cantidad de nodos del node pool."
     minimum: 1
   vcn_cidr:
     type: string
     title: "VCN CIDR"
     description: "CIDR principal de la VCN."
-  vcn_additional_cidr_blocks:
-    type: array
-    title: "Additional VCN CIDRs"
-    description: "CIDRs adicionales que se asociaran a la VCN."
-    items:
-      type: string
   api_endpoint_subnet_cidr:
     type: string
     title: "API Endpoint Subnet CIDR"
@@ -153,7 +135,7 @@ variables:
   pods_subnet_cidr:
     type: string
     title: "Shared Pods Subnet CIDR"
-    description: "CIDR de la subnet privada de pods compartida por todos los node pools."
+    description: "CIDR de la subnet privada de pods compartida por el node pool."
   load_balancer_subnet_cidr:
     type: string
     title: "Load Balancer Subnet CIDR"

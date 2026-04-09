@@ -70,12 +70,6 @@ variable "vcn_cidr" {
   default     = "100.0.0.0/16"
 }
 
-variable "vcn_additional_cidr_blocks" {
-  description = "CIDRs adicionales para la VCN"
-  type        = list(string)
-  default     = ["10.0.0.0/16"]
-}
-
 variable "api_endpoint_subnet_cidr" {
   description = "CIDR de subnet API endpoint"
   type        = string
@@ -169,18 +163,6 @@ variable "worker_node_count" {
   description = "Numero de worker nodes"
   type        = number
   default     = 1
-}
-
-variable "apps_node_pool_name" {
-  description = "Nombre del segundo node pool"
-  type        = string
-  default     = "np-apps"
-}
-
-variable "apps_worker_node_count" {
-  description = "Cantidad de nodos en el segundo node pool"
-  type        = number
-  default     = 2
 }
 
 variable "worker_node_shape" {

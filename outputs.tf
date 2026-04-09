@@ -23,11 +23,6 @@ output "oke_node_pool_id" {
   value       = oci_containerengine_node_pool.workers.id
 }
 
-output "oke_apps_node_pool_id" {
-  description = "OCID del segundo node pool (apps)"
-  value       = oci_containerengine_node_pool.apps.id
-}
-
 output "oke_api_endpoint_subnet_id" {
   description = "OCID de subnet publica para API"
   value       = oci_core_subnet.api_endpoint.id
@@ -51,31 +46,6 @@ output "oke_load_balancer_subnet_id" {
 output "oke_bastion_subnet_id" {
   description = "OCID de subnet publica para bastion"
   value       = oci_core_subnet.bastion.id
-}
-
-output "oke_api_endpoint_nsg_id" {
-  description = "OCID de NSG para API endpoint"
-  value       = oci_core_network_security_group.api_endpoint.id
-}
-
-output "oke_workers_nsg_id" {
-  description = "OCID de NSG para workers"
-  value       = oci_core_network_security_group.workers.id
-}
-
-output "oke_pods_nsg_id" {
-  description = "OCID de NSG para pods"
-  value       = oci_core_network_security_group.pods.id
-}
-
-output "oke_load_balancer_nsg_id" {
-  description = "OCID de NSG para load balancer"
-  value       = oci_core_network_security_group.load_balancer.id
-}
-
-output "oke_bastion_nsg_id" {
-  description = "OCID de NSG para bastion"
-  value       = oci_core_network_security_group.bastion.id
 }
 
 output "oke_bastion_instance_id" {

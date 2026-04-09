@@ -28,7 +28,7 @@ RM autocompleta estas variables:
 
 El resto de variables del template ya viene con valores de referencia para el workshop y solo deben cambiarse si quieres modificar nombres, CIDRs o sizing.
 
-Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 min. Luego, se debe esperar unos 7min mas para que la vm bastion instale y configure oci cli, kubectl.
+Nota importante: El aprovisionamiento de los servicios se tarda entre 20 a 25 min. Luego, se debe esperar unos 5min mas para que la vm bastion instale y configure oci cli, docker y kubectl.
 
 ## 1. Componentes principales creados
 
@@ -41,18 +41,16 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 - Subredes:
   - API endpoint (publica)
   - Workers (privada)
-  - Pods compartida para todos los node pools (privada)
+  - Pods compartida para el node pool (privada)
   - Load Balancer (publica)
   - Bastion (publica)
 - Seguridad de red por capa:
   - Security Lists por subnet
   - Route Tables por subnet
-  - NSGs dedicados por rol
 - OKE:
   - Cluster `ENHANCED_CLUSTER`
   - CNI nativo OCI
-  - Node Pool #1 (sistema/default)
-  - Node Pool #2 (apps) usando la misma subnet de pods
+  - Un solo node pool
 - Bastion:
   - VM publica `vm-bastion-<cluster>`
   - Imagen Oracle Linux 9
@@ -61,24 +59,18 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
 
 ## 2. Topologia de red (CIDRs)
 
-- VCN: `100.0.0.0/16` (adicional: `10.0.0.0/16`)
+- VCN: `100.0.0.0/16`
 - API endpoint subnet: `100.0.0.0/29`
 - Workers subnet: `100.0.1.0/24`
 - Pods subnet compartida: `100.0.32.0/19`
 - Load Balancer subnet: `100.0.2.0/24`
 - Bastion subnet: `100.0.3.0/24`
 
-## 3. Node pools y relacion con subredes
+## 3. Node pool y relacion con subredes
 
-- Node Pool #1 (`workers`):
+- Node Pool (`workers`):
   - Nodos en `snet-workers-<cluster>`
   - Pods en `snet-pods-<cluster>`
-  - Pod NSG: `nsg-pods-<cluster>`
-
-- Node Pool #2 (`apps`):
-  - Nodos en `snet-workers-<cluster>` (misma subnet de workers del pool #1)
-  - Pods en `snet-pods-<cluster>` (misma subnet de pods del pool #1)
-  - Pod NSG: `nsg-pods-<cluster>`
 
 ## 4. Route Tables (resumen)
 
@@ -145,24 +137,15 @@ Nota importante: El aprovisionamiento de los servicios se tarda entre 25 a 30 mi
   - Hacia API: TCP `6443`
   - Hacia workers: TCP `22`
 
-## 6. NSGs (resumen)
-
-- `nsg-api-endpoint-<cluster>`: creado sin reglas.
-- `nsg-workers-<cluster>`: creado sin reglas.
-- `nsg-pods-<cluster>`: creado sin reglas.
-- `nsg-lb-<cluster>`: creado sin reglas.
-- `nsg-bastion-<cluster>`: creado sin reglas.
-
-## 7. Nomenclatura aplicada
+## 6. Nomenclatura aplicada
 
 - Route Tables: `rt-<rol>-<cluster>`
 - Security Lists: `sl-<rol>-<cluster>`
-- NSGs: `nsg-<rol>-<cluster>`
 - Subnets: `snet-<rol>-<cluster>`
 
-## 8. VM Bastion y bootstrap (`user_data`)
+## 7. VM Bastion y bootstrap (`user_data`)
 
-Ademas del cluster OKE, el entorno despliega una VM bastion en la subnet publica `snet-bastion-<cluster>` con IP publica y NSG `nsg-bastion-<cluster>`.
+Ademas del cluster OKE, el entorno despliega una VM bastion en la subnet publica `snet-bastion-<cluster>` con IP publica.
 
 La instancia se crea con:
 
@@ -185,17 +168,17 @@ El `user_data` definido en `main.tf` realiza este bootstrap inicial:
 
 Resultado operativo: al terminar el provisionamiento, la bastion queda preparada para usar `oci` y `kubectl` tanto con el usuario `opc` como con `root`, apuntando al cluster OKE desplegado por el mismo stack.
 
-## 9. Archivos del entorno
+## 8. Archivos del entorno
 
 - `.gitignore`: evita subir archivos sensibles o locales al repositorio remoto.
 - `provider.tf`: provider OCI simplificado para RM, con alias para `home region`.
 - `variables.tf`: variables del entorno.
 - `terraform.tfvars.example`: ejemplo de valores para las variables manuales.
 - `schema.yaml`: definicion de UI para Resource Manager.
-- `main.tf`: recursos de red, OKE, node pools y VM bastion.
+- `main.tf`: recursos de red, OKE, node pool y VM bastion.
 - `outputs.tf`: salidas del entorno.
 
-## 10. Nota operativa importante
+## 9. Nota operativa importante
 
 OCI no permite actualizar en caliente el `cidr_block` de una subnet existente.
 Si cambias CIDR de una subnet ya creada, Terraform debe reemplazarla (destroy/create), no actualizarla in-place.

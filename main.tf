@@ -160,7 +160,7 @@ resource "oci_identity_compartment" "oke" {
 
 resource "oci_core_vcn" "oke" {
   compartment_id = oci_identity_compartment.oke.id
-  cidr_blocks    = distinct(concat([var.vcn_cidr], var.vcn_additional_cidr_blocks))
+  cidr_blocks    = [var.vcn_cidr]
   display_name   = "vcn-${local.cluster_name}"
   dns_label      = "okevcn"
 
@@ -216,86 +216,6 @@ resource "oci_core_service_gateway" "oke" {
   services {
     service_id = local.all_services_service_id
   }
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-  }
-}
-
-resource "oci_core_network_security_group" "api_endpoint" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-api-endpoint-${local.cluster_name}"
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-  }
-}
-
-resource "oci_core_network_security_group" "workers" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-workers-${local.cluster_name}"
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-  }
-}
-
-resource "oci_core_network_security_group" "pods" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-pods-${local.cluster_name}"
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-  }
-}
-
-resource "oci_core_network_security_group" "load_balancer" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-lb-${local.cluster_name}"
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-  }
-}
-
-resource "oci_core_network_security_group" "bastion" {
-  compartment_id = oci_identity_compartment.oke.id
-  vcn_id         = oci_core_vcn.oke.id
-  display_name   = "nsg-bastion-${local.cluster_name}"
 
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
@@ -1033,7 +953,6 @@ resource "oci_core_instance" "bastion" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.bastion.id
     assign_public_ip = true
-    nsg_ids          = [oci_core_network_security_group.bastion.id]
   }
 
   source_details {
@@ -1077,7 +996,6 @@ resource "oci_containerengine_cluster" "oke" {
 
   endpoint_config {
     is_public_ip_enabled = true
-    nsg_ids              = [oci_core_network_security_group.api_endpoint.id]
     subnet_id            = oci_core_subnet.api_endpoint.id
   }
 
@@ -1128,9 +1046,6 @@ resource "oci_containerengine_node_pool" "workers" {
 
   node_config_details {
     size = var.worker_node_count
-    nsg_ids = [
-      oci_core_network_security_group.workers.id
-    ]
 
     placement_configs {
       availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
@@ -1140,64 +1055,6 @@ resource "oci_containerengine_node_pool" "workers" {
     node_pool_pod_network_option_details {
       cni_type       = "OCI_VCN_IP_NATIVE"
       pod_subnet_ids = [oci_core_subnet.pods.id]
-      pod_nsg_ids    = [oci_core_network_security_group.pods.id]
-    }
-  }
-
-  node_source_details {
-    source_type = "IMAGE"
-    image_id    = local.node_image_id
-  }
-
-  freeform_tags = var.freeform_tags
-  defined_tags  = var.defined_tags
-
-  lifecycle {
-    ignore_changes = [
-      defined_tags["Oracle-Tags.CreatedBy"],
-      defined_tags["Oracle-Tags.CreatedOn"]
-    ]
-
-    precondition {
-      condition     = local.node_image_id != null
-      error_message = "No se encontro una imagen Oracle Linux 8 compatible. Define var.worker_image_id."
-    }
-  }
-
-  timeouts {
-    create = "2h"
-    update = "2h"
-    delete = "2h"
-  }
-}
-
-resource "oci_containerengine_node_pool" "apps" {
-  compartment_id     = oci_identity_compartment.oke.id
-  cluster_id         = oci_containerengine_cluster.oke.id
-  name               = var.apps_node_pool_name
-  kubernetes_version = var.kubernetes_version
-  node_shape         = var.worker_node_shape
-
-  node_shape_config {
-    ocpus         = var.worker_node_ocpus
-    memory_in_gbs = var.worker_node_memory_gbs
-  }
-
-  node_config_details {
-    size = var.apps_worker_node_count
-    nsg_ids = [
-      oci_core_network_security_group.workers.id
-    ]
-
-    placement_configs {
-      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
-      subnet_id           = oci_core_subnet.workers.id
-    }
-
-    node_pool_pod_network_option_details {
-      cni_type       = "OCI_VCN_IP_NATIVE"
-      pod_subnet_ids = [oci_core_subnet.pods.id]
-      pod_nsg_ids    = [oci_core_network_security_group.pods.id]
     }
   }
 
