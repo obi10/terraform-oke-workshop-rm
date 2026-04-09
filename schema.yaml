@@ -1,6 +1,6 @@
 title: "OKE Workshop for Resource Manager"
 description: "Despliega un cluster OKE con bastion y red dedicada usando una sola subnet de pods compartida. Resource Manager autocompleta tenancy_ocid, compartment_ocid y region."
-stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion, un Primary Node Pool y una subnet de pods compartida."
+stackDescription: "Crea un compartment hijo debajo del compartment seleccionado en el stack y despliega un workshop OKE completo con VM bastion, un Node Pool y una subnet de pods compartida."
 schemaVersion: "1.1.0"
 version: "1.0.0"
 locale: "en"
@@ -110,15 +110,15 @@ variables:
   kubernetes_version:
     type: string
     title: "Kubernetes Version"
-    description: "Version de Kubernetes para el cluster y el Primary Node Pool."
+    description: "Version de Kubernetes para el cluster y el Node Pool."
   node_pool_name:
     type: string
-    title: "Primary Node Pool Name"
-    description: "Nombre del Primary Node Pool."
+    title: "Node Pool Name"
+    description: "Nombre del Node Pool."
   worker_node_count:
     type: number
-    title: "Primary Node Count"
-    description: "Cantidad de nodos del Primary Node Pool."
+    title: "Node Count"
+    description: "Cantidad de nodos del Node Pool."
     minimum: 1
   vcn_cidr:
     type: string
@@ -135,7 +135,7 @@ variables:
   pods_subnet_cidr:
     type: string
     title: "Shared Pods Subnet CIDR"
-    description: "CIDR de la subnet privada de pods compartida por el Primary Node Pool."
+    description: "CIDR de la subnet privada de pods compartida por el Node Pool."
   load_balancer_subnet_cidr:
     type: string
     title: "Load Balancer Subnet CIDR"
